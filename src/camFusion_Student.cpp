@@ -154,5 +154,79 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)
 {
-    // ...
+
+    int bbCount_prev = prevFrame.boundingBoxes.size();
+    int bbCount_curr = currFrame.boundingBoxes.size();
+    //Matrix of bBoxes prev x bBoxes curr and number of matched key points between as value
+    int interBBmatchingCounts[bbCount_prev][bbCount_curr];
+
+    for ( int i = 0; i < prevFrame.boundingBoxes.size(); i++ )
+    {
+        for ( int j = 0; j < currFrame.boundingBoxes.size(); j++ )
+        {
+            interBBmatchingCounts[i][j] = 0;
+        }
+    }
+
+    //Iterating through all key point matches between the two images
+    for(auto match : matches)
+    {
+        //Extracting the corresponding bounding box IDs the key points are belonging to within the individual frames
+        cv::KeyPoint kpt_prev = prevFrame.keypoints[match.queryIdx];
+        cv::KeyPoint kpt_curr = currFrame.keypoints[match.trainIdx];
+
+        std::vector<int> bbIDs_prev, bbIDs_curr;
+
+        //Getting associated bounding boxes for matched key point in previous frame
+        for(auto bBox : prevFrame.boundingBoxes)
+        {
+            if(bBox.roi.contains(kpt_prev.pt))
+            {
+                bbIDs_prev.push_back(bBox.boxID);
+            }
+        }
+        //Getting associated bounding boxes for matched key point in current frame
+        for(auto bBox : currFrame.boundingBoxes)
+        {
+            if(bBox.roi.contains(kpt_curr.pt))
+            {
+                bbIDs_curr.push_back(bBox.boxID);
+            }
+        }
+        //Counting number of matches between all possible bBox combinations between the frames to find the highest one
+        if (bbIDs_prev.size() > 0 && bbIDs_curr.size() > 0)
+        {
+            for (auto bbID_prev : bbIDs_prev)
+            {
+                for (auto bbID_curr : bbIDs_curr)
+                {
+                    //increasing match counter between id_prev and id_curr
+                    interBBmatchingCounts[bbID_prev][bbID_curr] += 1;
+                }
+            }
+        }
+    }
+
+
+
+
+    //Finding bBox matches by checking every bBox in the previous frame for the highest inter bounding box matching count in the current frame.
+    for (int i = 0; i < bbCount_prev; i++)
+    {
+
+        int count_max = 0;
+        int id_max =0;
+
+        for (int j = 0; j < bbCount_curr ; j++)
+        {
+            if (interBBmatchingCounts[i][j] > count_max)
+            {
+                count_max = interBBmatchingCounts[i][j];
+                id_max = j;
+            }
+        }
+
+
+        bbBestMatches[i] = id_max;
+    }
 }
