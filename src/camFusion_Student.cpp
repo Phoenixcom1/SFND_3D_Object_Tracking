@@ -144,11 +144,23 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
     // ...
 }
 
+bool sortLidarPoint(LidarPoint pt1, LidarPoint pt2){ return pt1.x < pt2.x;}
 
 void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
                      std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
 {
-    // ...
+
+    //Sorting and taking the median to ignore outliers
+    std::sort(lidarPointsPrev.begin(), lidarPointsPrev.end(), sortLidarPoint);
+    std::sort(lidarPointsCurr.begin(), lidarPointsCurr.end(), sortLidarPoint);
+
+    double pt_prev = lidarPointsPrev[lidarPointsPrev.size()/2].x;
+    double pt_curr = lidarPointsCurr[lidarPointsCurr.size()/2].x;
+
+    //Calculating TTC
+    double dt = 1.0 / frameRate;
+    TTC = pt_curr  * dt / (pt_prev - pt_curr);
+
 }
 
 
@@ -178,7 +190,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
         std::vector<int> bbIDs_prev, bbIDs_curr;
 
         //Getting associated bounding boxes for matched key point in previous frame
-        for(auto bBox : prevFrame.boundingBoxes)
+        for(const auto& bBox : prevFrame.boundingBoxes)
         {
             if(bBox.roi.contains(kpt_prev.pt))
             {
@@ -186,7 +198,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
             }
         }
         //Getting associated bounding boxes for matched key point in current frame
-        for(auto bBox : currFrame.boundingBoxes)
+        for(const auto& bBox : currFrame.boundingBoxes)
         {
             if(bBox.roi.contains(kpt_curr.pt))
             {
@@ -194,7 +206,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
             }
         }
         //Counting number of matches between all possible bBox combinations between the frames to find the highest one
-        if (bbIDs_prev.size() > 0 && bbIDs_curr.size() > 0)
+        if (!bbIDs_prev.empty() && !bbIDs_curr.empty())
         {
             for (auto bbID_prev : bbIDs_prev)
             {
