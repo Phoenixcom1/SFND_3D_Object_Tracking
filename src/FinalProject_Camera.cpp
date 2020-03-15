@@ -150,11 +150,37 @@ int main(int argc, const char *argv[])
 
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-        string detectorType = "SHITOMASI";
+        string detectorType = "SIFT";
 
-        if (detectorType.compare("SHITOMASI") == 0)
+        // -> HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
+
+        if (detectorType == "SHITOMASI")
         {
             detKeypointsShiTomasi(keypoints, imgGray, false);
+        }
+        else if (detectorType == "HARRIS")
+        {
+            detKeypointsHarris(keypoints, imgGray, false);
+        }
+        else if (detectorType == "FAST")
+        {
+            detKeypointsFAST(keypoints, imgGray, false);
+        }
+        else if (detectorType == "BRISK")
+        {
+            detKeypointsBRISK(keypoints, imgGray, false);
+        }
+        else if (detectorType == "ORB")
+        {
+            detKeypointsORB(keypoints, imgGray, false);
+        }
+        else if (detectorType == "AKAZE")
+        {
+            detKeypointsAKAZE(keypoints, imgGray);
+        }
+        else if (detectorType == "SIFT")
+        {
+            detKeypointsSIFT(keypoints, imgGray, false);
         }
         else
         {
