@@ -75,8 +75,12 @@ int main(int argc, const char *argv[])
     /* MAIN LOOP OVER ALL IMAGES */
 
 
-    vector<string> detectors = {"SHITOMASI","HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
-    vector<string> descriptors = {"BRISK", "BRIEF", "ORB", "FREAK", "AKAZE", "SIFT"};
+//    vector<string> detectors = {"SHITOMASI","HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
+//    vector<string> descriptors = {"BRISK", "BRIEF", "ORB", "FREAK", "AKAZE", "SIFT"};
+
+    vector<string> detectors = {"SHITOMASI"};
+    vector<string> descriptors = {"BRISK"};
+
 
     std::ofstream myfile;
     myfile.open("measures.csv");
@@ -160,7 +164,7 @@ int main(int argc, const char *argv[])
                                     shrinkFactor, P_rect_00, R_rect_00, RT);
 
                 // Visualize 3D objects
-                bVis = false;
+                bVis = true;
                 if (bVis) {
                     show3DObjects(frameBuffer.getLatest()->boundingBoxes, cv::Size(4.0, 20.0), cv::Size(2000, 2000),
                                   true);
@@ -201,6 +205,27 @@ int main(int argc, const char *argv[])
                     detKeypointsSIFT(keypoints, imgGray, false);
                 } else {
                     //...
+                }
+
+                // only keep keypoints on the preceding vehicle
+                bool bFocusOnVehicle = true;
+                cv::Rect vehicleRect(535, 180, 180, 150);
+                if (bFocusOnVehicle)
+                {
+                    auto kp = keypoints.begin();
+                    while( kp != keypoints.end())
+                    {
+                        if(kp->pt.x < vehicleRect.x || kp->pt.x > vehicleRect.x+vehicleRect.width
+                           || kp->pt.y < vehicleRect.y || kp->pt.y > vehicleRect.y + vehicleRect.height)
+                        {
+                            kp = keypoints.erase(kp);
+                        }
+                        else
+                        {
+                            ++kp;
+                        }
+                    }
+
                 }
 
                 // optional : limit number of keypoints (helpful for debugging and learning)
@@ -315,7 +340,7 @@ int main(int argc, const char *argv[])
                             //// EOF STUDENT ASSIGNMENT
 
                             //TODO enable bVis for eval
-                            bVis = false;
+                            bVis = true;
                             if (bVis) {
                                 cv::Mat visImg = frameBuffer.getLatest()->cameraImg.clone();
                                 showLidarImgOverlay(visImg, currBB->lidarPoints, P_rect_00, R_rect_00, RT, &visImg);
@@ -332,7 +357,7 @@ int main(int argc, const char *argv[])
                                 cv::namedWindow(windowName, 4);
                                 cv::imshow(windowName, visImg);
                                 cout << "Press key to continue to next frame" << endl;
-                                //cv::waitKey(0);
+                                cv::waitKey(0);
                             }
                             bVis = false;
 
