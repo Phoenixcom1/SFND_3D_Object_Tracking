@@ -207,34 +207,13 @@ int main(int argc, const char *argv[])
                     //...
                 }
 
-                // only keep keypoints on the preceding vehicle
-                bool bFocusOnVehicle = true;
-                cv::Rect vehicleRect(535, 180, 180, 150);
-                if (bFocusOnVehicle)
-                {
-                    auto kp = keypoints.begin();
-                    while( kp != keypoints.end())
-                    {
-                        if(kp->pt.x < vehicleRect.x || kp->pt.x > vehicleRect.x+vehicleRect.width
-                           || kp->pt.y < vehicleRect.y || kp->pt.y > vehicleRect.y + vehicleRect.height)
-                        {
-                            kp = keypoints.erase(kp);
-                        }
-                        else
-                        {
-                            ++kp;
-                        }
-                    }
-
-                }
-
                 // optional : limit number of keypoints (helpful for debugging and learning)
                 bool bLimitKpts = false;
                 if (bLimitKpts) {
                     int maxKeypoints = 50;
 
-                    if (detectorType.compare("SHITOMASI") ==
-                        0) { // there is no response info, so keep the first 50 as they are sorted in descending quality order
+                    if (detectorType.compare("SHITOMASI") == 0)
+                    { // there is no response info, so keep the first 50 as they are sorted in descending quality order
                         keypoints.erase(keypoints.begin() + maxKeypoints, keypoints.end());
                     }
                     cv::KeyPointsFilter::retainBest(keypoints, maxKeypoints);
@@ -267,7 +246,7 @@ int main(int argc, const char *argv[])
                     vector<cv::DMatch> matches;
                     string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
                     string descriptorType2 = "DES_BINARY"; // DES_BINARY, DES_HOG
-                    string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
+                    string selectorType = "SEL_KNN";       // SEL_NN, SEL_KNN
 
                     matchDescriptors(frameBuffer.getSecondLatest()->keypoints, frameBuffer.getLatest()->keypoints,
                                      frameBuffer.getSecondLatest()->descriptors, frameBuffer.getLatest()->descriptors,
