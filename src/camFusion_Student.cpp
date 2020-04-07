@@ -4,6 +4,9 @@
 #include <numeric>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <unordered_set>
+
+
 
 #include "camFusion.hpp"
 #include "dataStructures.h"
@@ -239,16 +242,66 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
                      std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
 {
 
-    //Sorting and taking the median to ignore outliers
-    std::sort(lidarPointsPrev.begin(), lidarPointsPrev.end(), sortLidarPoint);
-    std::sort(lidarPointsCurr.begin(), lidarPointsCurr.end(), sortLidarPoint);
+    double dT = 1/frameRate;    // time between two measurements in seconds
+    double laneWidth = 2.0;     // assumed width of the ego lane
 
-    double pt_prev = lidarPointsPrev[lidarPointsPrev.size()/2].x;
-    double pt_curr = lidarPointsCurr[lidarPointsCurr.size()/2].x;
+    vector<double> prevDataVector;
+    for (auto it = lidarPointsPrev.begin(); it != lidarPointsPrev.end(); ++it)
+    {
+        if (abs(it->y) <= laneWidth / 2.0)
+        {
+            prevDataVector.push_back(it->x);
+        }
+    }
 
-    //Calculating TTC
-    double dt = 1.0 / frameRate;
-    TTC = pt_curr  * dt / (pt_prev - pt_curr);
+    vector<double> currDataVector;
+    for (auto it = lidarPointsCurr.begin(); it != lidarPointsCurr.end(); ++it)
+    {
+        if (abs(it->y) <= laneWidth / 2.0)
+        {
+            currDataVector.push_back(it->x);
+        }
+    }
+
+    double meanMinXPrev = std::accumulate(prevDataVector.begin(), prevDataVector.end(), 0.0) / prevDataVector.size();
+    double meanMinXCurr = std::accumulate(currDataVector.begin(), currDataVector.end(), 0.0) / currDataVector.size();
+
+    TTC = meanMinXCurr * dT / std::abs(meanMinXPrev - meanMinXCurr);
+    //return;
+
+    size_t size = prevDataVector.size();
+    sort(prevDataVector.begin(), prevDataVector.end());
+    double medianPrevData = 0;
+    if (size % 2 == 0)
+    {
+        medianPrevData = (prevDataVector[size / 2 - 1] + prevDataVector[size / 2]) / 2;
+    }
+    else
+    {
+        medianPrevData = prevDataVector[size / 2];
+    }
+
+    size = currDataVector.size();
+    sort(currDataVector.begin(), currDataVector.end());
+    double medianCurrData = 0;
+    if (size % 2 == 0)
+    {
+        medianCurrData = (currDataVector[size / 2 - 1] + currDataVector[size / 2]) / 2;
+    }
+    else
+    {
+        medianCurrData = currDataVector[size / 2];
+    }
+
+    if ((prevDataVector.size() == 0) || (currDataVector.size() == 0))
+    {
+        TTC = NAN;
+        return;
+    }
+
+    // compute TTC from both measurements
+    TTC = medianCurrData * dT / (medianPrevData - medianCurrData);
+    return;
 
 }
 
