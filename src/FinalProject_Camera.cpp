@@ -246,7 +246,7 @@ int main(int argc, const char *argv[])
                     vector<cv::DMatch> matches;
                     string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
                     string descriptorType2 = "DES_BINARY"; // DES_BINARY, DES_HOG
-                    string selectorType = "SEL_KNN";       // SEL_NN, SEL_KNN
+                    string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
 
                     matchDescriptors(frameBuffer.getSecondLatest()->keypoints, frameBuffer.getLatest()->keypoints,
                                      frameBuffer.getSecondLatest()->descriptors, frameBuffer.getLatest()->descriptors,
@@ -322,6 +322,11 @@ int main(int argc, const char *argv[])
                             bVis = true;
                             if (bVis) {
                                 cv::Mat visImg = frameBuffer.getLatest()->cameraImg.clone();
+
+                                cv::drawMatches(frameBuffer.getSecondLatest()->cameraImg, frameBuffer.getSecondLatest()->keypoints, frameBuffer.getLatest()->cameraImg, frameBuffer.getLatest()->keypoints, currBB->kptMatches,
+                                                visImg, cv::Scalar::all(-1), cv::Scalar::all(-1), vector<char>(), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+
+
                                 showLidarImgOverlay(visImg, currBB->lidarPoints, P_rect_00, R_rect_00, RT, &visImg);
                                 cv::rectangle(visImg, cv::Point(currBB->roi.x, currBB->roi.y),
                                               cv::Point(currBB->roi.x + currBB->roi.width,

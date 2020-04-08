@@ -158,7 +158,7 @@ void clusterKptMatchesWithROI(BoundingBox &boundingBox, std::vector<cv::KeyPoint
 
     double threshould = avDistOfkptMachtesInROI * 0.8;
 
-    for(auto match : kptMatches)
+    for(auto match : kptMatchesInROI)
     {
         if(match.distance < threshould)
         {
