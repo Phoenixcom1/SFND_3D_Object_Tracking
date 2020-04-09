@@ -60,7 +60,7 @@ private:
 
 template <typename T,int SZ>
 RingBuffer<T,SZ>::RingBuffer() :
-        max_size_(SZ)
+        max_size_(static_cast<const size_t>(SZ))
 { /*empty*/ }
 
 template <typename T,int SZ>
