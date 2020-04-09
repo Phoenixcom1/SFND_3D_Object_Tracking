@@ -33,3 +33,48 @@ In this final project, you will implement the missing parts in the schematic. To
 2. Make a build directory in the top level project directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
 4. Run it: `./3D_object_tracking`.
+
+## Performance evaluation 1
+
+_Find examples where the TTC estimate of the Lidar sensor does not seem plausible. Describe your observations and provide a sound argumentation why you think this happened._
+
+Initial assumption is that the ego vehicle is continuously getting closer to the vehicle in front (resulting in monotonously decreasing TTC). Within the results it can be observed, that e.g. between frames 2/3 and 3/4, the Lidar based TTC is increasing instead of decreasing.
+This is most probably caused by lidar points associated with the bounding box / ROI but not been part of the proceeding vehicle (outliers). For lowering the impact of such outliers, the average filter got replaced by an median filter. Though, results still show an impact by such outliers.
+As a next step an improved outlier detection should be introduced.
+
+
+## Performance evaluation 2
+
+_Run several detector / descriptor combinations and look at the differences in TTC estimation. Find out which methods perform best and also include several examples where camera-based TTC estimation is way off. As with Lidar, describe your observations again and also look into potential reasons._
+
+The camera based TTC calculation is directly depending on the performance of the detector/descriptor and matcher combination. For a reliable TTC calculation a sufficient amount of keypoints and correct matches is essential.
+In the following good and bad examples are shown. 
+
+### Good examples
+Detector Type | Descriptor Type | Matcher Type | Selector Type |
+--|--|--|--|
+SHITOMASI | BRISK | MAT_BF | SEL_NN |
+
+<img src="images/SHITOMASI_BRISK_NN.png" width="752" height="449" />
+
+Detector Type | Descriptor Type | Matcher Type | Selector Type |
+--|--|--|--|
+AKAZE | BRISK | MAT_BF | SEL_NN |
+
+<img src="images/AKAZE_BRISK_NN.png" width="752" height="449" />
+
+Detector Type | Descriptor Type | Matcher Type | Selector Type |
+--|--|--|--|
+SIFT | FREAK | MAT_BF | SEL_NN |
+
+<img src="images/SIFT_FREAK_NN.png" width="752" height="449" />
+
+### Bad example
+
+Within the results it can be observed, that due to few keypoints provided by the HARRIS detector, the TTC calculation is unreliable and misleading. An example is given below.
+
+Detector Type | Descriptor Type | Matcher Type | Selector Type |
+--|--|--|--|
+HARRIS | SIFT | MAT_BF | SEL_NN |
+
+<img src="images/HARRIS_SIFT_NN.png" width="752" height="449" />
