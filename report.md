@@ -61,7 +61,8 @@ The combinations with the highest connections is provided as result.
 
 The function computeTTCLidar calculates the TTC for objects within the Ego Lane (median) according to the following formula, where $$d_0$$ and $$d_1$$ are the distances, measured from two sequently data frames frames, and $$\Delta t$$ is the difference in time between those data frames.
 
-$$TTC = \frac{d_1\Delta t}{d_0-d_1}$$
+[comment]: <> (normal markdown formular: $$TTC = \frac{d_1\Delta t}{d_0-d_1}$$, github fix is given below)
+![TTC = \frac{d_1\Delta t}{d_0-d_1}](https://render.githubusercontent.com/render/math?math=TTC%20%3D%20%5Cfrac%7Bd_1%5CDelta%20t%7D%7Bd_0-d_1%7D)
 
 The lidar points get limited to the ego lane via the following code snippets.
 
@@ -121,9 +122,10 @@ for(auto match : kptMatchesInROI)
 
 >_Compute the time-to-collision in second for all matched 3D objects using only keypoint correspondences from the matched bounding boxes between current and previous frame._
 
-The function computeTTCCamera calculates the TTC based on provided key point matches according to the following formula, where $$h_0$$ is the distance of two key points within the previous frame, and $$h_1$$ the distance of the matched key points within the current frame. The time between the two measurements $$\Delta t$$ is given by the frame rate.
+The function computeTTCCamera calculates the TTC based on provided key point matches according to the following formula, where ![h_0](https://render.githubusercontent.com/render/math?math=h_0) is the distance of two key points within the previous frame, and ![h_1](https://render.githubusercontent.com/render/math?math=h_1) the distance of the matched key points within the current frame.
+The time between the two measurements ![\Delta t](https://render.githubusercontent.com/render/math?math=%5CDelta%20t) is given by the frame rate.
 
-<img src="images/TTC_Camera.png" width="752" height="443" />
+<img src="images/TTC_Camera.png" width="1405" height="974" />
 
 The euclidean distance is been calculated via the cv::norm function in the code. Side note on this can be found [here](https://stackoverflow.com/a/55111972).
 
@@ -132,7 +134,9 @@ The euclidean distance is been calculated via the cv::norm function in the code.
     double distCurr = cv::norm(kpOuterCurr.pt - kpInnerCurr.pt);
     double distPrev = cv::norm(kpOuterPrev.pt - kpInnerPrev.pt);
 ```
-The distance ratio $$\frac{h_1}{h_0}$$ gets been calculated for all combinations where the distance is above a certain threshold. The distance ratio provides information about the relative movement of the key points in sequently frames, in this example the distance increases when the proceeding vehicle gets closer to the camera and therefore gets bigger in the image. This been set into relation with the time between those two measurements is leading to the TTC information we are looking for.
+[comment]: <> (normal markdown formular: $$\frac{h_1}{h_0}$$)
+
+The distance ratio ![\frac{h_1}{h_0}](https://render.githubusercontent.com/render/math?math=%5Cfrac%7Bh_1%7D%7Bh_0%7D) gets been calculated for all combinations where the distance is above a certain threshold. The distance ratio provides information about the relative movement of the key points in sequently frames, in this example the distance increases when the proceeding vehicle gets closer to the camera and therefore gets bigger in the image. This been set into relation with the time between those two measurements is leading to the TTC information we are looking for.
 In comparison to the lidar calculation, where an decreased distance (proceeding vehicle vs. ego car) is leading to an lower TTC, here an increased distance (two key points on the proceesing car) is leading to an lower TTC.
 
 Again the median instead of average is been used to lower the impact of outliers.
@@ -145,14 +149,14 @@ Initial assumption is that the ego vehicle is continuously getting closer to the
 Since the calculation is working fine, the reason must be within the data e.g. lidar points associated with the bounding box / ROI but not been part of the proceeding vehicle (outliers) or a noisy measurement.
 
 If we compare the visualization of frame one and frame six, it can be observed that frame one contains nice and dense measurements of the cars back with only a bit spreading on the outsides.
-<img src="images/frame_1.png" width="752" height="443" />
+<img src="images/frame_1.png" width="943" height="202" />
 Frame six in comparison contains much more scattered measurements including some which can be considered as outliers.  
-<img src="images/frame_6.png" width="752" height="443" />
+<img src="images/frame_6.png" width="943" height="231" />
  
 For lowering the impact of such outliers, the average filter got replaced by an median filter. In the following graphic, the TTC got calculated for the first seven frames, based on the minimum value and the median value for each frame.
 One can see that the median filter is already improving the robustness a lot, though, the results still show an impact by such outliers and noise.
 
-<img src="images/min_median_ttc.png" width="752" height="443" />
+<img src="images/min_median_ttc.png" width="1256" height="560" />
 
 As a next step the filtering could be improved by removing a certain percentage from the upper and lower end before calculating the median to even more reduce the impact of unsharp measurements.
 
