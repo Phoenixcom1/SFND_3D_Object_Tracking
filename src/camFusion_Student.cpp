@@ -206,7 +206,7 @@ void computeTTCCamera(std::vector<cv::KeyPoint> &kptsPrev, std::vector<cv::KeyPo
     // compute camera-based TTC from distance ratios
     //double meanDistRatio = std::accumulate(distRatios.begin(), distRatios.end(), 0.0) / distRatios.size();
 
-
+    //TODO remove certain percentage of lower and upper end to decrease impact of outliers and noise within the measurements
     sort(distRatios.begin(), distRatios.end());
     double medianDistRatio;
     // check for un-/even case
@@ -248,17 +248,16 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
         }
     }
 
-    double meanMinXPrev = std::accumulate(prevDataVector.begin(), prevDataVector.end(), 0.0) / prevDataVector.size();
-    double meanMinXCurr = std::accumulate(currDataVector.begin(), currDataVector.end(), 0.0) / currDataVector.size();
+    //double meanMinXPrev = std::accumulate(prevDataVector.begin(), prevDataVector.end(), 0.0) / prevDataVector.size();
+    //double meanMinXCurr = std::accumulate(currDataVector.begin(), currDataVector.end(), 0.0) / currDataVector.size();
 
-    TTC = meanMinXCurr * dT / std::abs(meanMinXPrev - meanMinXCurr);
+    //TTC = meanMinXCurr * dT / std::abs(meanMinXPrev - meanMinXCurr);
     //return;
 
     size_t size = prevDataVector.size();
     sort(prevDataVector.begin(), prevDataVector.end());
     double medianPrevData = 0;
-    if (size % 2 == 0)
-    {
+    if (size % 2 == 0) {
         medianPrevData = (prevDataVector[size / 2 - 1] + prevDataVector[size / 2]) / 2;
     }
     else
@@ -272,9 +271,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
     if (size % 2 == 0)
     {
         medianCurrData = (currDataVector[size / 2 - 1] + currDataVector[size / 2]) / 2;
-    }
-    else
-    {
+    } else {
         medianCurrData = currDataVector[size / 2];
     }
 
@@ -282,7 +279,9 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
         TTC = NAN;
         return;
     }
-
+//    cout << "median prev data frame: " << medianPrevData << endl;
+//    cout << "median curr data frame: " << medianCurrData << endl;
+//    cout << "prev-curr data frame: " << (medianPrevData - medianCurrData) << endl;
     // compute TTC from both measurements
     TTC = medianCurrData * dT / (medianPrevData - medianCurrData);
 
@@ -302,9 +301,17 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
         }
     }
 
+//    for (int i = 0; i < prevFrame.boundingBoxes.size(); i++) {
+//        for (int j = 0; j < currFrame.boundingBoxes.size(); j++) {
+//            cout << interBBmatchingCounts[i][j];
+//        }
+//        cout << endl;
+//    }
+//    cout << endl;
+
+
     //Iterating through all key point matches between the two images
-    for(auto match : matches)
-    {
+    for (auto match : matches) {
         //Extracting the corresponding bounding box IDs the key points are belonging to within the individual frames
         cv::KeyPoint kpt_prev = prevFrame.keypoints[match.queryIdx];
         cv::KeyPoint kpt_curr = currFrame.keypoints[match.trainIdx];
@@ -328,28 +335,39 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
             }
         }
         //Counting number of matches between all possible bBox combinations between the frames to find the highest one
-        if (!bbIDs_prev.empty() && !bbIDs_curr.empty())
-        {
-            for (auto bbID_prev : bbIDs_prev)
-            {
-                for (auto bbID_curr : bbIDs_curr)
-                {
+        if (!bbIDs_prev.empty() && !bbIDs_curr.empty()) {
+            for (auto bbID_prev : bbIDs_prev) {
+                for (auto bbID_curr : bbIDs_curr) {
                     //increasing match counter between id_prev and id_curr
                     interBBmatchingCounts[bbID_prev][bbID_curr] += 1;
                 }
             }
+
+//            for (int i = 0; i < prevFrame.boundingBoxes.size(); i++) {
+//                for (int j = 0; j < currFrame.boundingBoxes.size(); j++) {
+//                    cout << interBBmatchingCounts[i][j];
+//                }
+//                cout << endl;
+//            }
+//            cout << endl;
         }
     }
 
+//    for (int i = 0; i < prevFrame.boundingBoxes.size(); i++) {
+//        for (int j = 0; j < currFrame.boundingBoxes.size(); j++) {
+//            cout << interBBmatchingCounts[i][j] << " ";
+//        }
+//        cout << endl;
+//    }
+//    cout << endl;
 
 
 
     //Finding bBox matches by checking every bBox in the previous frame for the highest inter bounding box matching count in the current frame.
-    for (int i = 0; i < bbCount_prev; i++)
-    {
+    for (int i = 0; i < bbCount_prev; i++) {
 
         int count_max = 0;
-        int id_max =0;
+        int id_max = 0;
 
         for (int j = 0; j < bbCount_curr ; j++)
         {
@@ -362,5 +380,6 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
 
 
         bbBestMatches[i] = id_max;
+        //cout << bbBestMatches[i] << endl;
     }
 }
